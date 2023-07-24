@@ -1,12 +1,13 @@
 package data
 
+import "time"
+
 //Struct for user data
 type user struct {
 	email    string
 	username string
 	//server will not know plaintext password, encrypted on client
 	passwordhash string
-	fullname     string
 	createdAt    string
 	//role is 0 => standard user
 	role int
@@ -18,7 +19,6 @@ var userList = []user{
 		email:        "issi@gmail.com",
 		username:     "issichik",
 		passwordhash: "hashedme1",
-		fullname:     "Issi Chik",
 		createdAt:    "1631600786",
 		role:         1,
 	},
@@ -26,7 +26,6 @@ var userList = []user{
 		email:        "checkers@example.com",
 		username:     "checkers",
 		passwordhash: "hashedme2",
-		fullname:     "Checker S",
 		createdAt:    "1631600837",
 		role:         0,
 	},
@@ -51,13 +50,13 @@ func (u *user) ValidatePasswordHash(pswdhash string) bool {
 }
 
 //Adds new users
-func AddNewUserObject(email string, username, string, passwordhash string, fullname string, role int) bool {
+func AddNewUserObject(email string, username string, passwordhash string, role int) bool {
 	//declare new object
 	newUser := user{
 		email:        email,
 		passwordhash: passwordhash,
 		username:     username,
-		fullname:     fullname,
+		createdAt:    time.Now().String(),
 		role:         role,
 	}
 
