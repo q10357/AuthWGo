@@ -4,8 +4,25 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+
+	"github.com/q10357/AuthWGo/authservice"
 )
 
 func main() {
 	fmt.Println("Server starting...")
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/signin", authservice.SigninHandler)
+	mux.HandleFunc("/signup", authservice.SignupHandler)
+
+	server := &http.Server{
+		Addr:    "127.0.0.1:5555",
+		Handler: mux,
+	}
+
+	err := server.ListenAndServe()
+	if err != nil {
+		fmt.Println("Error Booting the Server")
+	}
 }
