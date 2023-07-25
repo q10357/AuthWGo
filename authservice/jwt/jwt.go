@@ -10,15 +10,18 @@ import (
 )
 
 // Generate tokens
-func GenerateToken(header string, payload map[string]string, secret string) (string, error) {
+func GenerateToken(claimsMap map[string]string) (string, error) {
 	//create new hash of type SHA256, pass secret to it
+	secret := "S0m3_R4n90m_sss"
+	header := "HS256"
+
 	h := hmac.New(sha256.New, []byte(secret))
 
 	//Encode header as base64 string
 	header64 := base64.StdEncoding.EncodeToString([]byte(header))
 
-	//Marshal (ibject to json string) payload, then base encode the string
-	payloadstr, err := json.Marshal(payload)
+	//Marshal (ibject to json string) claims, then base encode the string
+	payloadstr, err := json.Marshal(claimsMap)
 
 	if err != nil {
 		//Mashal function returned an error
@@ -52,20 +55,20 @@ func ValidateToken(token string, secret string) (bool, error) {
 		return false, nil
 	}
 
-	//decode header & payload into strings
+	//decode header & claimsMap into strings
 	//header is the first element of the array
 	header, err := base64.StdEncoding.DecodeString(splitToken[0])
 	if err != nil {
 		return false, err
 	}
-	//followed by our payload
-	payload, err := base64.StdEncoding.DecodeString(splitToken[1])
+	//followed by our claimsMap
+	claimsMap, err := base64.StdEncoding.DecodeString(splitToken[1])
 	if err != nil {
 		return false, err
 	}
 
 	//create signature
-	unsignedStr := string(header) + string(payload)
+	unsignedStr := string(header) + string(claimsMap)
 	h := hmac.New(sha256.New, []byte(secret))
 	h.Write([]byte(unsignedStr))
 

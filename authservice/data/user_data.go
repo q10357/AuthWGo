@@ -4,6 +4,7 @@ import "time"
 
 //Struct for user data
 type user struct {
+	id       uint64
 	email    string
 	username string
 	//server will not know plaintext password, encrypted on client
@@ -16,6 +17,7 @@ type user struct {
 //Faking database
 var userList = []user{
 	{
+		id:           1,
 		email:        "issi@gmail.com",
 		username:     "issichik",
 		passwordhash: "hashedme1",
@@ -23,6 +25,7 @@ var userList = []user{
 		role:         1,
 	},
 	{
+		id:           2,
 		email:        "checkers@example.com",
 		username:     "checkers",
 		passwordhash: "hashedme2",
@@ -42,6 +45,14 @@ func GetUserObject(email string) (user, bool) {
 
 	//No match, return false
 	return user{}, false
+}
+
+func (u *user) CheckIfAdmin() bool {
+	return u.role == 1
+}
+
+func (u *user) GetUserId() uint64 {
+	return u.id
 }
 
 //Function belonging to user struct

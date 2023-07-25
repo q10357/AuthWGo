@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/q10357/AuthWGo/authservice/data"
@@ -22,7 +23,7 @@ import (
 )
 
 // private function, searches for user in database
-func validateUser(email string, pswdhash string) (bool, error) {
+func validateUser(email string, pswdhash string, ui *data.UserInfo) (bool, error) {
 	u, exists := data.GetUserObject(email)
 	if !exists {
 		return false, errors.New("user not found")
@@ -34,24 +35,27 @@ func validateUser(email string, pswdhash string) (bool, error) {
 		return false, nil
 	}
 
+	//Setting userinfo for claims
+	ui.IsAdmin = u.CheckIfAdmin()
+	ui.Id = u.GetUserId()
+
 	return true, nil
 }
 
-func getSignedToken() (string, error) {
+func getSignedToken(ui *data.UserInfo) (string, error) {
+	//secret := "Secure_Random_string"
 	claimsMap := map[string]string{
-		"sub": "1",
-		"iss": "knowsearch.ml",
-		"exp": fmt.Sprint(time.Now().Add(time.Minute * 1).Unix()),
+		"sub":   strconv.FormatUint(ui.Id, 10),
+		"admin": strconv.FormatBool(ui.IsAdmin),
+		"exp":   fmt.Sprint(time.Now().Add(time.Minute * 1).Unix()),
 	}
 
-	//secret := "Secure_Random_string"
-	secret := "S0m3_R4n90m_sss"
-	header := "HS256"
+	tokenString, err := jwt.GenerateToken(claimsMap)
 
-	tokenString, err := jwt.GenerateToken(header, claimsMap, secret)
 	if err != nil {
 		return tokenString, err
 	}
+
 	return tokenString, nil
 }
 
@@ -61,7 +65,6 @@ func SigninHandler(rw http.ResponseWriter, r *http.Request) {
 	// validate request headers
 	body := map[string]interface{}{}
 	json.NewDecoder(r.Body).Decode(&body)
-	fmt.Println(body)
 
 	if _, ok := body["Email"]; !ok {
 		rw.WriteHeader(http.StatusBadRequest)
@@ -74,8 +77,10 @@ func SigninHandler(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var ui data.UserInfo
+
 	//user exists?
-	valid, err := validateUser(body["Email"].(string), body["PasswordHash"].(string))
+	valid, err := validateUser(body["Email"].(string), body["PasswordHash"].(string), &ui)
 
 	if err != nil {
 		//user not found
@@ -92,16 +97,15 @@ func SigninHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	//Valid login
-	tokenStr, err := getSignedToken()
+	tokenStr, err := getSignedToken(&ui)
+
 	if err != nil {
-		fmt.Println(err)
 		rw.WriteHeader(http.StatusInternalServerError)
 		rw.Write([]byte("Internal Server Error"))
 		return
 	}
 
 	fmt.Println("Login successfull")
-	fmt.Println(tokenStr)
 
 	http.SetCookie(rw, &http.Cookie{
 		Name:     "token",

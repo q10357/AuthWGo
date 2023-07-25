@@ -17,12 +17,12 @@ func main() {
 	mux.HandleFunc("/signup", authservice.SignupHandler)
 
 	server := &http.Server{
-		Addr:    "127.0.0.1:5555",
+		Addr:    "127.0.0.1:3333",
 		Handler: mux,
 	}
 
 	err := server.ListenAndServe()
 	if err != nil {
-		fmt.Println("Error Booting the Server")
+		fmt.Printf("Error Booting the Server\nError: %s\n", err)
 	}
 }
