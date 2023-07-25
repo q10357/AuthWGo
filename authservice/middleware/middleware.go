@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/q10357/AuthWGo/authservice/jwt"
@@ -28,6 +29,8 @@ func tokenValidationMiddleware(next http.Handler) http.Handler {
 			rw.Write([]byte("Token Invalid"))
 			return
 		}
+
+		fmt.Println("Middleware")
 		rw.WriteHeader(http.StatusOK)
 		rw.Write([]byte("Authorized Token"))
 	})

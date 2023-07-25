@@ -11,6 +11,7 @@
 package authservice
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -38,7 +39,7 @@ func validateUser(email string, pswdhash string) (bool, error) {
 
 func getSignedToken() (string, error) {
 	claimsMap := map[string]string{
-		"aud": "frontend.knowsearch.ml",
+		"sub": "1",
 		"iss": "knowsearch.ml",
 		"exp": fmt.Sprint(time.Now().Add(time.Minute * 1).Unix()),
 	}
@@ -58,19 +59,23 @@ func getSignedToken() (string, error) {
 // if found, JWT token is sent to client
 func SigninHandler(rw http.ResponseWriter, r *http.Request) {
 	// validate request headers
-	if _, ok := r.Header["Email"]; !ok {
+	body := map[string]interface{}{}
+	json.NewDecoder(r.Body).Decode(&body)
+	fmt.Println(body)
+
+	if _, ok := body["Email"]; !ok {
 		rw.WriteHeader(http.StatusBadRequest)
 		rw.Write([]byte("Email Missing"))
 		return
 	}
-	if _, ok := r.Header["Passwordhash"]; !ok {
+	if _, ok := body["PasswordHash"]; !ok {
 		rw.WriteHeader(http.StatusBadRequest)
 		rw.Write([]byte("Passwordhash Missing"))
 		return
 	}
 
 	//user exists?
-	valid, err := validateUser(r.Header["Email"][0], r.Header["Passwordhash"][0])
+	valid, err := validateUser(body["Email"].(string), body["PasswordHash"].(string))
 
 	if err != nil {
 		//user not found
@@ -95,6 +100,13 @@ func SigninHandler(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("Login successfull")
+	fmt.Println(tokenStr)
+
+	http.SetCookie(rw, &http.Cookie{
+		Name:     "token",
+		Value:    tokenStr,
+		HttpOnly: true,
+	})
 	rw.WriteHeader(http.StatusOK)
-	rw.Write([]byte(tokenStr))
 }
