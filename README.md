@@ -1,5 +1,5 @@
-# JWTAuthWGo
-Learning Go: Experimenting with JWT
+☝2️⃣🕒 **GO**
 
-Implementing simple login system, using JWT for authentication and authorization. <br>The project's purpose is to learn go,
-and get a better understanding of JWT.<br><br>
+Implementing simple login system, using JWT for authentication and authorization. 
+
+The project's purpose is to learn Go 📚 while getting a good understanding of JWT (and what beats making it yourself? 🐱‍🏍)
